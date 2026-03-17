@@ -50,6 +50,20 @@ def patch(filepath):
     print(f"패치 대상: {filepath}")
     with open(filepath, 'r') as f:
         content = f.read()
+
+    # 이미 패치된 파일이면 백업에서 원본 복원 후 재패치
+    if G in content:
+        bak = filepath + '.bak'
+        if os.path.exists(bak):
+            print(f"  기존 패치 감지 → 원본 복원 후 재패치")
+            shutil.copy2(bak, filepath)
+            with open(filepath, 'r') as f:
+                content = f.read()
+        else:
+            print(f"  ERROR: 이미 패치된 파일이지만 백업({bak})이 없습니다.")
+            print(f"  npm install로 원본 cli.js를 복원한 뒤 다시 시도하세요.")
+            return False
+
     orig_len = len(content)
     n = 0
 
