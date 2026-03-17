@@ -3,18 +3,18 @@
 # Claude Code CJK IME Fix - 설치/관리 스크립트
 #
 # 사용법:
+#   # 방법 1: 한 줄 설치
+#   curl -fsSL https://raw.githubusercontent.com/astron8t-voyagerx/claude-code-korean-fix/main/setup.sh | bash
+#
+#   # 방법 2: 클론 후 설치
 #   git clone https://github.com/astron8t-voyagerx/claude-code-korean-fix.git
 #   cd claude-code-korean-fix
-#   ./setup.sh              # 설치 (기본)
+#   ./setup.sh
 #
-# 업데이트:
-#   cd claude-code-korean-fix
-#   git pull
-#   ./setup.sh update
-#
-# 기타:
-#   ./setup.sh uninstall    # 완전 제거
+# 관리:
 #   ./setup.sh status       # 상태 확인
+#   ./setup.sh update       # 업데이트 (클론: git pull 후 실행)
+#   ./setup.sh uninstall    # 완전 제거
 #
 set -euo pipefail
 
@@ -38,18 +38,16 @@ success() { printf "${GREEN}${BOLD}[OK]${NC} %s\n" "$*"; }
 warn()    { printf "${YELLOW}${BOLD}[WARN]${NC} %s\n" "$*"; }
 error()   { printf "${RED}${BOLD}[ERROR]${NC} %s\n" "$*" >&2; }
 
-# ─── 스크립트 위치 감지 ───────────────────────────────
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# ─── 상수 (원격 다운로드용) ────────────────────────────
+REPO_RAW_URL="https://raw.githubusercontent.com/astron8t-voyagerx/claude-code-korean-fix/main"
 
-# 패치 스크립트가 같은 디렉토리에 있는지 확인
-if [ ! -f "$SCRIPT_DIR/$PATCH_SCRIPT_NAME" ]; then
-    error "패치 스크립트를 찾을 수 없습니다: $SCRIPT_DIR/$PATCH_SCRIPT_NAME"
-    error ""
-    error "이 스크립트는 git 저장소에서 실행해야 합니다:"
-    error "  git clone https://github.com/astron8t-voyagerx/claude-code-korean-fix.git"
-    error "  cd claude-code-korean-fix"
-    error "  ./setup.sh"
-    exit 1
+# ─── 스크립트 위치 감지 ───────────────────────────────
+# curl | bash → BASH_SOURCE[0]이 비어있거나 "bash"
+# 로컬 실행 → BASH_SOURCE[0]이 실제 파일 경로
+if [ -n "${BASH_SOURCE[0]:-}" ] && [ "${BASH_SOURCE[0]}" != "bash" ] && [ -f "${BASH_SOURCE[0]}" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+    SCRIPT_DIR=""
 fi
 
 # ─── 전제조건 확인 ─────────────────────────────────────
@@ -81,6 +79,30 @@ check_prerequisites() {
     fi
 
     info "Node.js $(node -v) | npm $(npm -v) | Python $(python3 --version 2>&1 | awk '{print $2}')"
+}
+
+# ─── 패치 스크립트 확보 ───────────────────────────────
+ensure_patch_script() {
+    local dest="$INSTALL_DIR/$PATCH_SCRIPT_NAME"
+
+    # 1. 로컬 (클론 실행) → 항상 최신 복사
+    if [ -n "${SCRIPT_DIR:-}" ] && [ -f "$SCRIPT_DIR/$PATCH_SCRIPT_NAME" ]; then
+        cp "$SCRIPT_DIR/$PATCH_SCRIPT_NAME" "$dest"
+        info "패치 스크립트 복사 (로컬)"
+        return
+    fi
+
+    # 2. GitHub에서 다운로드 (curl | bash)
+    info "패치 스크립트 다운로드 중..."
+    if command -v curl &>/dev/null; then
+        curl -fsSL "$REPO_RAW_URL/$PATCH_SCRIPT_NAME" -o "$dest"
+    elif command -v wget &>/dev/null; then
+        wget -qO "$dest" "$REPO_RAW_URL/$PATCH_SCRIPT_NAME"
+    else
+        error "curl 또는 wget이 필요합니다"
+        exit 1
+    fi
+    success "패치 스크립트 다운로드 완료"
 }
 
 # ─── 래퍼 스크립트 생성 ───────────────────────────────
@@ -168,7 +190,7 @@ save_metadata() {
 CLAUDE_VERSION=$CLAUDE_VERSION
 INSTALLED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 NODE_PATH=$(command -v node)
-REPO_DIR=$SCRIPT_DIR
+REPO_DIR=${SCRIPT_DIR:-curl}
 EOF
 }
 
@@ -196,9 +218,8 @@ do_install() {
         exit 1
     fi
 
-    # 패치 스크립트 복사 (항상 repo에서 최신 복사)
-    cp "$SCRIPT_DIR/$PATCH_SCRIPT_NAME" "$INSTALL_DIR/$PATCH_SCRIPT_NAME"
-    info "패치 스크립트 복사: $SCRIPT_DIR/$PATCH_SCRIPT_NAME"
+    # 패치 스크립트 확보 (로컬 복사 또는 다운로드)
+    ensure_patch_script
     echo ""
 
     # 패치 적용
@@ -261,7 +282,6 @@ do_uninstall() {
     echo ""
     success "제거 완료!"
     info "새 터미널을 열면 변경사항이 반영됩니다."
-    info "이 git 저장소도 필요 없으면 삭제하세요: rm -rf $SCRIPT_DIR"
 }
 
 # ─── 상태 확인 ───────────────────────────────────────
@@ -328,9 +348,13 @@ do_status() {
         warn "셸 설정 없음: $rc_file"
     fi
 
-    # repo 최신 여부 힌트
+    # 업데이트 힌트
     echo ""
-    info "업데이트 방법: cd $SCRIPT_DIR && git pull && ./setup.sh update"
+    if [ -n "${SCRIPT_DIR:-}" ]; then
+        info "업데이트: cd $SCRIPT_DIR && git pull && ./setup.sh update"
+    else
+        info "재설치: curl -fsSL $REPO_RAW_URL/setup.sh | bash"
+    fi
 }
 
 # ─── 메인 ────────────────────────────────────────────
