@@ -3,3 +3,4 @@ node_modules/
 .metadata
 __pycache__/
 *.pyc
+TECHNICAL.md
