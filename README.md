@@ -52,18 +52,28 @@ cd claude-code-korean-fix
 
 ## 관리
 
+### 클론 설치한 경우
+
 ```bash
 cd claude-code-korean-fix
 
-# 상태 확인
-./setup.sh status
+./setup.sh status       # 상태 확인
+git pull && ./setup.sh update   # 업데이트
+./setup.sh uninstall    # 완전 제거
+```
 
-# 업데이트 (새 버전 패치 지원 시)
-git pull
-./setup.sh update
+### curl로 설치한 경우
 
-# 완전 제거
-./setup.sh uninstall
+```bash
+# 업데이트 (재설치)
+curl -fsSL https://raw.githubusercontent.com/astron8t-voyagerx/claude-code-korean-fix/main/setup.sh | bash
+
+# 제거
+rm -rf ~/.claude-ime-fix
+# 그리고 ~/.zshrc (또는 ~/.bashrc)에서 아래 블록 삭제:
+#   # >>> claude-ime-fix >>>
+#   export PATH="$HOME/.claude-ime-fix/bin:$PATH"
+#   # <<< claude-ime-fix <<<
 ```
 
 ## 지원 버전
