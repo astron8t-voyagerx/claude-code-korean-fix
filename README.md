@@ -14,7 +14,7 @@ Claude Code는 [React Ink](https://github.com/vadimdemedes/ink)로 터미널 UI�
 ## 설치
 
 ```bash
-git clone https://github.com/astron8t/claude-code-korean-fix.git
+git clone https://github.com/astron8t-voyagerx/claude-code-korean-fix.git
 cd claude-code-korean-fix
 ./setup.sh
 ```
@@ -243,7 +243,7 @@ node --check "$CLI"
 ### Quick Install
 
 ```bash
-git clone https://github.com/astron8t/claude-code-korean-fix.git
+git clone https://github.com/astron8t-voyagerx/claude-code-korean-fix.git
 cd claude-code-korean-fix
 ./setup.sh
 ```

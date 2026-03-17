@@ -3,7 +3,7 @@
 # Claude Code CJK IME Fix - 설치/관리 스크립트
 #
 # 사용법:
-#   git clone https://github.com/astron8t/claude-code-korean-fix.git
+#   git clone https://github.com/astron8t-voyagerx/claude-code-korean-fix.git
 #   cd claude-code-korean-fix
 #   ./setup.sh              # 설치 (기본)
 #
@@ -46,7 +46,7 @@ if [ ! -f "$SCRIPT_DIR/$PATCH_SCRIPT_NAME" ]; then
     error "패치 스크립트를 찾을 수 없습니다: $SCRIPT_DIR/$PATCH_SCRIPT_NAME"
     error ""
     error "이 스크립트는 git 저장소에서 실행해야 합니다:"
-    error "  git clone https://github.com/astron8t/claude-code-korean-fix.git"
+    error "  git clone https://github.com/astron8t-voyagerx/claude-code-korean-fix.git"
     error "  cd claude-code-korean-fix"
     error "  ./setup.sh"
     exit 1
