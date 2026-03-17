@@ -119,13 +119,18 @@ def patch(filepath):
     #
     # ESC[7m (ANSI inverse)이 포함된 텍스트 = 가짜 커서가 있는 TextInput.
     # M8()은 ANSI를 strip한 뒤 display width를 계산하는 함수.
+    #
+    # 멀티라인 처리: 붙여넣기 등으로 노드 텍스트에 \n이 포함될 수 있음.
+    # ESC[7m 앞 전체 텍스트의 display width를 구하면 이전 줄 너비가 포함됨.
+    # lastIndexOf("\n")로 현재 줄만 추출하여 정확한 열 오프셋 계산.
     # ==================================================================
     old = 'T=wm3(A,T),q.write(O,$,T)'
     new = (
         f'T=wm3(A,T),q.write(O,$,T);'
         f'if(T&&T.indexOf("\\x1b[7m")!==-1)'
-        f'{{{G}.hasInverse=true;{G}.yogaX=Math.floor(O);{G}.yogaY=Math.floor($);'
-        f'{G}.nodeCol=M8(T.substring(0,T.indexOf("\\x1b[7m")))}}'
+        f'{{var __p=T.substring(0,T.indexOf("\\x1b[7m")),__nl=__p.lastIndexOf("\\n");'
+        f'{G}.hasInverse=true;{G}.yogaX=Math.floor(O);{G}.yogaY=Math.floor($);'
+        f'{G}.nodeCol=M8(__nl===-1?__p:__p.substring(__nl+1))}}'
     )
     if old in content and new not in content:
         content = content.replace(old, new, 1)
